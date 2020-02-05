@@ -1,12 +1,13 @@
 import React from 'react';
 import './App.css';
+import Places from './components/Places'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Hiking Tracker</h1>
-      </header>
+    <div id="container">
+      <h2>Hiking Tracker</h2>
+      <Places />
+      <button id="saveLocationButton">SAVE</button>
     </div>
   );
 }

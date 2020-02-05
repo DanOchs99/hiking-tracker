@@ -1,8 +1,8 @@
-.App {
+#root {
   text-align: center;
 }
 
-.App-header {
+#container {
   background-color: #282c34;
   min-height: 100vh;
   display: flex;
@@ -11,3 +11,16 @@
   color: white;
 }
 
+#saveLocationButton {
+  font-size: calc(10px + 2vmin);
+  font-weight: bold;
+  background-color: red;
+  color: white;
+  width: fit-content;
+  border-radius: 5px;
+  border-style: solid;
+  border-color: white;
+  border-width: 2px;
+  align-self: center;
+  margin-top: 20px;
+}
