@@ -1,15 +1,22 @@
 import * as actionTypes from '../types/types'
 
-const initialState = { locations: [], message: '' }
+const initialState = { locations: [], isAuthenticated: false, user: {username: null, id: 0}, token: '' }
 
 const reducer = (state = initialState, action) => {
     switch(action.type) {
         case actionTypes.ADD_LOCATION:
             return {...state,
                     locations: state.locations.concat(action.payload) }
-        case actionTypes.SET_MESSAGE:
+        case actionTypes.ON_LOGIN:
             return {...state,
-                message: action.payload }
+                isAuthenticated: true,
+                user: {username: action.payload.username, id: action.payload.id },
+                token: action.payload.token }
+        case actionTypes.ON_LOGOFF:
+            return {...state,
+                isAuthenticated: false,
+                user: {username: null, id: 0},
+                token: '' }
         default:
             return state;
     }

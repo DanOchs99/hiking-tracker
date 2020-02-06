@@ -6,7 +6,8 @@ function Places(props) {
 
     const styles = {margin: 10}
     const placesElements = props.locations.map((loc, index) => {
-        const showDate = loc.date.toString()
+        //const showDate = loc.date.toString()
+        const showDate = 'FIX DATE READ'
         return(
                <div key={index} style={styles}>
                  <div>Lat: {loc.lat}</div>

@@ -24,3 +24,36 @@
   align-self: center;
   margin-top: 20px;
 }
+
+#loginButton, #logoutButton, #registerButton, #profileButton {
+  font-size: calc(10px + 1vmin);
+  background-color: steelblue;
+  color: white;
+  width: fit-content;
+  border-radius: 5px;
+  border-style: solid;
+  border-color: white;
+  border-width: 2px;
+  align-self: center;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+#loginDiv, #logoutDiv {
+  display: flex;
+  align-self: center;
+  margin: 5px;
+}
+
+#userDiv {
+  margin-right: 20px;
+}
+
+#usernameTextbox, #passwordTextbox {
+  font-size: calc(10px + 1vmin);
+  background-color: white;
+  color: steelblue;
+  width: fit-content;
+  align-self: center;
+  margin-top: 15px;
+}
