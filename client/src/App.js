@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect } from 'react';
 import './App.css';
 import Places from './components/Places'
 import {connect} from 'react-redux'
@@ -8,16 +8,21 @@ function App(props) {
   const [message, setMessage] = useState('')
   const [login, setLogin] = useState({})
 
-  useEffect(() => { 
-      // do stuff on load here...
-   },[])
+  const destructuredPropisAuthenticated = props.isAuthenticated
+  const destructuredPropgetLocations = props.getLocations
+  const destructuredProptoken = props.token
+  useEffect(()=>{
+      if (destructuredPropisAuthenticated) {
+        destructuredPropgetLocations(destructuredProptoken)
+      }
+  },[destructuredPropisAuthenticated, destructuredPropgetLocations, destructuredProptoken])
 
   const handleClickSave = () => {
     // user clicked the SAVE button
     setMessage("Getting location...")
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-          let loc = {lat: position.coords.latitude, lon: position.coords.longitude}
+          let loc = {lat: position.coords.latitude.toFixed(6), lon: position.coords.longitude.toFixed(6)}
           props.addLocation(loc, props.token);
           // TODO: show error message from the server here...
           setMessage('');
@@ -77,7 +82,7 @@ function App(props) {
       {!props.isAuthenticated && <input onChange={handleOnChangeLogin} id="usernameTextbox" type="text" name="username" placeholder="username" />}
       {!props.isAuthenticated && <input onChange={handleOnChangeLogin} id="passwordTextbox" type="password" name="password" placeholder="password" />}
       {props.isAuthenticated && <div id="logoutDiv">
-                                  <div id="userDiv">{props.user.username}</div>
+                                  <div id="userDiv">{props.username}</div>
                                   <button id="profileButton" onClick={handleClickProfile}>Profile</button>
                                   <button id="logoutButton" onClick={handleClickLogout}>Logout</button>
                                 </div> }
@@ -90,12 +95,13 @@ function App(props) {
 
 const mapStateToProps = (state) => {
   return { isAuthenticated: state.isAuthenticated,
-           user: state.user,
+           username: state.username,
            token: state.token }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return { addLocation: (loc, token) => dispatch(actionCreators.addLocation(loc, token)),
+           getLocations: (token) => dispatch(actionCreators.getLocations(token)),
            onLogin: (user) => dispatch(actionCreators.onLogin(user)),
            onRegister: (user) => dispatch(actionCreators.onRegister(user)),
            onLogoff: () => dispatch(actionCreators.onLogoff()) }

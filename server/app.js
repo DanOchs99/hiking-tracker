@@ -16,22 +16,67 @@ app.use(express.json());
 
 const pgp = require("pg-promise")();
 pgp.pg.defaults.ssl = true;
+//pgp.pg.defaults.rejectUnauthorized = false;
 const db = pgp(DATABASE_URL);
 
 // authorization middleware
 const auth = (req,res,next) => {
-    console.log(req.headers)
-    next()
+    // get the headers from this request
+    const headers = req.headers['authorization'] // Bearer <token>
+    if (headers) {
+        const token = headers.split(' ')[1]
+        // verify the token
+        jwt.verify(token, JWT_SECRET, (error,decoded) => {
+            if (error) {
+                // unable to verify the token
+                res.status(401).json({"status": "Authentication failed"})
+            }
+            else {
+                // token verified
+                req.headers['payload'] = decoded
+                next();
+            }
+        })
+    }
+    else
+    {
+        res.status(401).json({"status": "Authentication failed"})
+    }
 }
 
 // login route - authenticate user
 app.post("/login", (req,res) => {
     const username = req.body.user.username;
     const password = req.body.user.password;
-
-
-    const token = jwt.sign({user: req.body.user.username}, JWT_SECRET)
-    res.status(200).json({"token": token})
+    db.oneOrNone("SELECT id, username, hash FROM users WHERE username=$1", [username])
+    .then(results => {
+        if (results) {
+            // username found, check password
+            bcrypt.compare(password, results.hash)
+            .then(passwordsMatch => {
+                if (passwordsMatch) {
+                    // password good - send back a token
+                    const token = jwt.sign({user: username, id: results.id}, JWT_SECRET)
+                    res.status(200).json({"token": token, "id": results.id})
+                }
+                else {
+                    // password did not match, send back an error 
+                    res.status(401).json({"message": "Authentication failed"})
+                }
+            })
+            .catch(error => {
+                console.log(error)
+                res.status(401).json({"message": "Authentication failed"})
+            })
+        }
+        else {
+            res.status(401).json({"message": "Authentication failed"})
+        } 
+    })
+    .catch(error => {
+        console.log(error)
+        res.status(401).json({"message": "Authentication failed"})
+    })
 })
 
 // register route - create a new user
@@ -71,23 +116,21 @@ app.post("/register", (req,res) => {
 
 // locations route - returns a list of locations
 app.get("/locations", auth, (req, res) => {
-    db.any("SELECT id, lat, lon, date FROM locations ORDER BY id;")
+    db.any("SELECT id, lat, lon, date FROM locations WHERE user_id=$1 ORDER BY id;",[req.headers.payload.id])
     .then(results => {
-        res.json(results);
+        res.status(200).json(results);
     })
     .catch(error => {
         console.log(error)
-    res.status(500).send();
+        res.status(500).send();
     });
-
-    res.json(locations);
 });
 
 // add route - add a new location to the database
 app.post("/add", auth, (req,res) => {
-    db.one("INSERT INTO locations (lat, lon) VALUES ($1, $2) RETURNING id, date;", [req.body.location.lat, req.body.location.lon])
+    db.none("INSERT INTO locations (lat, lon, user_id) VALUES ($1, $2, $3);", [req.body.location.lat, req.body.location.lon, req.headers.payload.id])
         .then((results) => {
-            res.status(200).json({"id": results.id, "date": results.date});
+            res.status(200).send();
         })
         .catch(error => {
             console.log(error)
@@ -96,9 +139,14 @@ app.post("/add", auth, (req,res) => {
 });
 
 // delete route - remove a location from the database
-//app.post("/delete", (req,res) => {
-//    console.log(body.id);
-//});
+app.post("/delete", auth, (req,res) => {
+    db.none("DELETE FROM locations WHERE id=$1;", [req.body.id])
+    .then(() => { res.status(200).send() })
+    .catch(error => {
+        console.log(error)
+        res.status(500).send();
+    });
+});
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

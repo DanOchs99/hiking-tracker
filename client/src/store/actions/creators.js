@@ -1,7 +1,7 @@
 import * as actionTypes from '../types/types'
 
-const addLocationActionCreator = (loc) => {
-    return ({type: actionTypes.ADD_LOCATION, payload: loc});
+const getLocationsActionCreator = (locs) => {
+    return ({type: actionTypes.GET_LOCATIONS, payload: locs});
 }
 
 const onLoginActionCreator = (user) => {
@@ -24,9 +24,30 @@ export const addLocation = (loc, token) => {
         })
         .then((response)=> {  
             if (response.status === 200) {
+                // refresh the locations list
+                dispatch(getLocations(token));
+            }
+            else {
+               console.log(`Server returned code ${response.status}`)
+            }
+        })
+    }
+}
+
+export const getLocations = (token) => {
+    return (dispatch) => {
+        fetch("http://localhost:8080/locations", {
+            headers: {
+                "Content-Type": "application/json",
+                "authorization": `Bearer ${token}`
+            }
+        })
+        .then((response)=> {  
+            if (response.status === 200) {
                 response.json()
                 .then((json) => {
-                    dispatch(addLocationActionCreator(loc));
+                    // refresh the locations list
+                    dispatch(getLocationsActionCreator(json));
                 });
             }
             else {
@@ -76,7 +97,6 @@ export const onRegister = (user) => {
                 .then((json) => {
                     localStorage.setItem('token', json.token)
                     user['token'] = json.token
-                    user['id'] = json.id
                     dispatch(onLoginActionCreator(user));
                 });
             }
@@ -94,5 +114,27 @@ export const onLogoff = () => {
     return (dispatch) => {
         localStorage.removeItem('token')
         dispatch(onLogoffActionCreator())
+    }
+}
+
+export const onDelete = (id, token) => {
+    return (dispatch) => {
+        fetch("http://localhost:8080/delete", {
+            method: 'POST',  
+            body: JSON.stringify({id: id }),
+            headers: {
+                "Content-Type": "application/json",
+                "authorization": `Bearer ${token}`
+            }
+        })
+        .then((response)=> {  
+            if (response.status === 200) {
+                // refresh the locations list
+                dispatch(getLocations(token));
+            }
+            else {
+               console.log(`Server returned code ${response.status}`)
+            }
+        })
     }
 }
